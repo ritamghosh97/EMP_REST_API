@@ -1,11 +1,14 @@
 package com.ritam.api.controller;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.ritam.api.entity.Employee;
 import com.ritam.api.exception.EmployeeNotFoundException;
 import com.ritam.api.exception.PayloadValidationFailedException;
 import com.ritam.api.service.EmployeeService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -33,14 +36,23 @@ public class EmployeeRestController {
     }
 
     @GetMapping("/employees/{id}")
-    public ResponseEntity<Employee> findEmployeeById(@PathVariable("id") int theId){
+    public ResponseEntity<EntityModel<Employee>> findEmployeeById(@PathVariable("id") int theId){
 
         Employee employee = employeeService
                 .findEmployeeById(theId)
                 .orElseThrow(() ->
                         new EmployeeNotFoundException("Employee not found with Id - "+theId));
 
-        return new ResponseEntity<>(employee, HttpStatus.FOUND);
+        //Create an Entity
+        EntityModel<Employee> employeeEntityModel = EntityModel.of(employee);
+
+        WebMvcLinkBuilder linkBuilder = WebMvcLinkBuilder
+                .linkTo(
+                        WebMvcLinkBuilder.methodOn(this.getClass()).findAllEmployees()
+                );
+        employeeEntityModel.add(linkBuilder.withRel("all-employees"));
+
+        return new ResponseEntity<>(employeeEntityModel, HttpStatus.FOUND);
     }
 
     @PostMapping("/employees")
