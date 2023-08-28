@@ -5,13 +5,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,7 +21,6 @@ import java.time.LocalDate;
 public class Employee {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name="id")
     private int id;
 
@@ -51,4 +48,15 @@ public class Employee {
     @Column(name="date_of_birth")
     @Past(message = "Date of birth must be a past date!")
     private LocalDate dateOfBirth;
+
+    @ManyToMany(fetch = FetchType.LAZY , cascade = {
+                    CascadeType.MERGE, CascadeType.PERSIST,
+                    CascadeType.DETACH, CascadeType.REFRESH}
+    )
+    @JoinTable(
+            name="employee_team",
+            joinColumns = @JoinColumn(name="emp_id"),
+            inverseJoinColumns = @JoinColumn(name = "team_id")
+    )
+    private List<Team> teams;
 }
