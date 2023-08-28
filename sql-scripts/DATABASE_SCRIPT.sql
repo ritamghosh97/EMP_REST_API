@@ -1,13 +1,47 @@
+USE `emp_rest_api_database`;
+
 DROP TABLE IF EXISTS `employee`;
+
 CREATE TABLE `employee` (
-  `id` INT NOT NULL AUTO_INCREMENT,
+  `id` INT NOT NULL,
   `username` VARCHAR(25) NOT NULL,
-  `first_name` varchar(45) DEFAULT NULL,
-  `last_name` varchar(45) DEFAULT NULL,
-  `gender` char(1) DEFAULT NULL,
-  `email` varchar(45) DEFAULT NULL,
-  `date_of_birth` date DEFAULT NULL,
+  `first_name` VARCHAR(45) DEFAULT NULL,
+  `last_name` VARCHAR(45) DEFAULT NULL,
+  `gender` CHAR(1) DEFAULT NULL,
+  `email` VARCHAR(45) DEFAULT NULL,
+  `date_of_birth` DATE DEFAULT NULL,
 
   PRIMARY KEY (`id`),
   CONSTRAINT UK_USERNAME UNIQUE KEY (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `team`;
+
+CREATE TABLE `team` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(45) NOT NULL,
+  `ou` VARCHAR(4) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `UK_TEAM_NAME` UNIQUE KEY (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+
+DROP TABLE IF EXISTS `employee_team`;
+
+CREATE TABLE `employee_team` (
+	`emp_id` INT NOT NULL,
+    `team_id` INT NOT NULL,
+
+    PRIMARY KEY (`emp_id`,`team_id`),
+
+    KEY `FK_EMPLOYEE_IDX` (`emp_id`),
+
+    CONSTRAINT `FK_EMPLOYEE` FOREIGN KEY (`emp_id`)
+    REFERENCES `employee` (`id`)
+    ON DELETE NO ACTION ON UPDATE NO ACTION,
+
+    CONSTRAINT `FK_TEAM` FOREIGN KEY (`team_id`)
+    REFERENCES `team` (`id`)
+    ON DELETE NO ACTION ON UPDATE NO ACTION
+)ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
