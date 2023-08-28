@@ -1,10 +1,13 @@
 package com.ritam.api.controller;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.ritam.api.entity.Employee;
+import com.ritam.api.entity.Team;
+import com.ritam.api.exception.DuplicateTeamException;
 import com.ritam.api.exception.EmployeeNotFoundException;
 import com.ritam.api.exception.PayloadValidationFailedException;
+import com.ritam.api.exception.TeamNotFoundException;
 import com.ritam.api.service.EmployeeService;
+import com.ritam.api.service.TeamService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
@@ -17,6 +20,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.StringJoiner;
 
 @RestController
@@ -25,9 +29,12 @@ public class EmployeeRestController {
 
     private EmployeeService employeeService;
 
+    private TeamService teamService;
+
     @Autowired
-    public EmployeeRestController(EmployeeService employeeService) {
+    public EmployeeRestController(EmployeeService employeeService, TeamService teamService) {
         this.employeeService = employeeService;
+        this.teamService = teamService;
     }
 
     @GetMapping("/employees")
@@ -68,17 +75,56 @@ public class EmployeeRestController {
             throw new PayloadValidationFailedException(errorMessage.toString());
         }
 
-        employee.setId(0);
+        //insert employee into the database
+        employeeService.createEmployee(employee);
 
-        Employee theEmployee = employeeService.createEmployee(employee);
+        //make sure the employee with custom id is successfully saved in the database
+        Optional<Employee> optionalEmployee = employeeService.findEmployeeById(employee.getId());
 
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentContextPath()
-                .path("employees/{id}")
-                .buildAndExpand(theEmployee.getId())
-                .toUri();
+        Employee dbEmployee = optionalEmployee.orElse(null);
 
-        return ResponseEntity.created(location).build();
+        if(null != dbEmployee) {
+            URI location = ServletUriComponentsBuilder
+                    .fromCurrentContextPath()
+                    .path("employees/{id}")
+                    .buildAndExpand(dbEmployee.getId())
+                    .toUri();
+
+            return ResponseEntity.created(location).build();
+        } else {
+            //in case if employee is not successfully saved in the database with the custom id
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PutMapping("/teams/{employeeId}/{teamName}")
+    public ResponseEntity<Employee> assignTeamToEmployee(@PathVariable("employeeId") Integer empId,
+                                                     @PathVariable("teamName") String teamName){
+
+        //check if the team exists
+        Team theTeam = teamService.findTeamByName(teamName);
+
+        //check if employee exists with the empId
+        Employee employee = employeeService.findEmployeeById(empId)
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id - "+empId));
+
+        if(null != theTeam && null != employee){
+
+            //check if employee is already a part of the mentioned team
+            if(employee.getTeams().stream().anyMatch(team -> team.getTeamName().equalsIgnoreCase(teamName))){
+                throw new DuplicateTeamException(employee.getUsername()+" already belongs to the team '"+teamName+"'!");
+            }
+
+            //assign team to employee
+            employee.getTeams().add(theTeam);
+
+            //update the existing team
+            employeeService.updateEmployee(employee);
+
+            return ResponseEntity.ok(employee);
+        } else {
+            throw new TeamNotFoundException("Team not found with name '"+teamName+"'");
+        }
     }
 
     @DeleteMapping("/employees")

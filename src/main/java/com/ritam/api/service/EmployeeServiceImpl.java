@@ -28,7 +28,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     }
 
     @Override
-    public Employee createEmployee(Employee employee) {
+    public void createEmployee(Employee employee) {
 
         Employee existingEmployee = employeeRepository.findByUsername(employee.getUsername());
 
@@ -36,6 +36,12 @@ public class EmployeeServiceImpl implements EmployeeService{
             throw new UsernameAlreadyExistsException("Username is already taken!! Please try with different username.");
         }
 
+        //save the employee into the database
+        employeeRepository.saveEmployee(employee);
+    }
+
+    @Override
+    public Employee updateEmployee(Employee employee) {
         return employeeRepository.save(employee);
     }
 
