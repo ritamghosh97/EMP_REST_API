@@ -110,7 +110,7 @@ public class EmployeeRestController {
 
         if(null != theTeam && null != employee){
 
-            //check if employee is already a part of the mentioned team
+            //check if an employee is already a part of the mentioned team
             if(employee.getTeams().stream().anyMatch(team -> team.getTeamName().equalsIgnoreCase(teamName))){
                 throw new DuplicateTeamException(employee.getUsername()+" already belongs to the team '"+teamName+"'!");
             }
