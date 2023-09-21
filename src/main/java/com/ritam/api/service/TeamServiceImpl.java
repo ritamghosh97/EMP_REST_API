@@ -1,7 +1,6 @@
 package com.ritam.api.service;
 
 import com.ritam.api.entity.Team;
-import com.ritam.api.repository.EmployeeRepository;
 import com.ritam.api.repository.TeamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,7 +11,7 @@ import java.util.Optional;
 @Service
 public class TeamServiceImpl implements TeamService{
 
-    private TeamRepository teamRepository;
+    private final TeamRepository teamRepository;
 
     @Autowired
     public TeamServiceImpl(TeamRepository teamRepository){

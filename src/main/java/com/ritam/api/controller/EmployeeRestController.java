@@ -127,7 +127,7 @@ public class EmployeeRestController {
         }
     }
 
-    @DeleteMapping("/employees")
+    @DeleteMapping("/employees/{id}")
     public ResponseEntity<Employee> deleteEmployee(@PathVariable("id") int theId){
 
         //get employee from the database

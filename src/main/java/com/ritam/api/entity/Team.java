@@ -42,5 +42,6 @@ public class Team {
             inverseJoinColumns = @JoinColumn(name = "emp_id")
     )
     @JsonIgnore
+    @ToString.Exclude
     private List<Employee> employee;
 }
